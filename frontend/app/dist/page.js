@@ -1,3 +1,4 @@
+// Updated frontend Home component
 "use client";
 "use strict";
 var __assign = (this && this.__assign) || function () {
@@ -58,6 +59,7 @@ function Home() {
     var _c = react_1.useState(false), loading = _c[0], setLoading = _c[1];
     var _d = react_1.useState(""), message = _d[0], setMessage = _d[1];
     var _e = react_1.useState([]), files = _e[0], setFiles = _e[1];
+    var _f = react_1.useState(null), mode = _f[0], setMode = _f[1]; // 1 = crawl, 2 = upload + extract, 3 = upload + compare
     var handleCrawl = function () { return __awaiter(_this, void 0, void 0, function () {
         var response, error_1;
         return __generator(this, function (_a) {
@@ -74,7 +76,7 @@ function Home() {
                     return [3 /*break*/, 5];
                 case 3:
                     error_1 = _a.sent();
-                    setMessage("❌ Có lỗi xảy ra!");
+                    setMessage("❌ Có lỗi xảy ra khi crawl!");
                     return [3 /*break*/, 5];
                 case 4:
                     setLoading(false);
@@ -83,59 +85,93 @@ function Home() {
             }
         });
     }); };
-    var _f = react_dropzone_1.useDropzone({
+    var _g = react_dropzone_1.useDropzone({
         accept: {
             "application/pdf": [".pdf"],
             "application/msword": [".doc", ".docx"],
             "application/vnd.ms-excel": [".xls", ".xlsx"]
         },
-        onDrop: function (acceptedFiles) { return setFiles(acceptedFiles); }
-    }), getRootProps = _f.getRootProps, getInputProps = _f.getInputProps;
-    var handleUpload = function () { return __awaiter(_this, void 0, void 0, function () {
-        var formData, response, error_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (files.length === 0) {
-                        alert("⚠ Vui lòng chọn file để tải lên!");
-                        return [2 /*return*/];
-                    }
-                    formData = new FormData();
-                    files.forEach(function (file) { return formData.append("file", file); });
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, axios_1["default"].post("http://127.0.0.1:8000/api/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } })];
-                case 2:
-                    response = _a.sent();
-                    alert(response.data.message);
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_2 = _a.sent();
-                    alert("❌ Có lỗi xảy ra khi tải lên file!");
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
-            }
+        onDrop: function (acceptedFiles) {
+            if (acceptedFiles.length > 0)
+                setFiles([acceptedFiles[0]]);
+        }
+    }), getRootProps = _g.getRootProps, getInputProps = _g.getInputProps;
+    var handleUpload = function (forComparison) {
+        if (forComparison === void 0) { forComparison = false; }
+        return __awaiter(_this, void 0, void 0, function () {
+            var formData, endpoint, response, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (files.length === 0)
+                            return [2 /*return*/, alert("⚠ Vui lòng chọn file để tải lên!")];
+                        formData = new FormData();
+                        formData.append("file", files[0]);
+                        endpoint = forComparison
+                            ? "http://127.0.0.1:8000/api/compare/"
+                            : "http://127.0.0.1:8000/api/upload/";
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, axios_1["default"].post(endpoint, formData, {
+                                headers: { "Content-Type": "multipart/form-data" }
+                            })];
+                    case 2:
+                        response = _a.sent();
+                        setMessage(response.data.message || "✅ Thành công!");
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_2 = _a.sent();
+                        setMessage("❌ Có lỗi xảy ra khi tải lên file!");
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
         });
-    }); };
+    };
     return (React.createElement("div", { className: "container" },
         React.createElement("div", { className: "w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg" },
-            React.createElement("h1", { className: "text-3xl font-bold text-center text-blue-600 mb-6" }, "\uD83D\uDCCA Crawl B\u00E0i Vi\u1EBFt & T\u1EA3i L\u00EAn File"),
-            React.createElement("div", { className: "mb-4" },
-                React.createElement("label", { className: "block text-lg font-medium text-gray-700" }, "\uD83D\uDCC4 S\u1ED1 l\u01B0\u1EE3ng b\u00E0i vi\u1EBFt:"),
-                React.createElement("input", { type: "number", value: numArticles, onChange: function (e) { return setNumArticles(Number(e.target.value)); }, className: "w-full p-2 border border-gray-300 rounded mt-1 focus:ring-blue-500 focus:border-blue-500" })),
-            React.createElement("div", { className: "mb-4" },
-                React.createElement("label", { className: "block text-lg font-medium text-gray-700" }, "\uD83D\uDCF0 Ch\u1ECDn chuy\u00EAn m\u1EE5c:"),
-                React.createElement("select", { value: category, onChange: function (e) { return setCategory(e.target.value); }, className: "w-full p-2 border border-gray-300 rounded mt-1 focus:ring-blue-500 focus:border-blue-500" },
-                    React.createElement("option", { value: "tuoitre" }, "Tu\u1ED5i Tr\u1EBB"),
-                    React.createElement("option", { value: "thanhnien" }, "Thanh Ni\u00EAn"),
-                    React.createElement("option", { value: "nld" }, "Ng\u01B0\u1EDDi Lao \u0110\u1ED9ng"),
-                    React.createElement("option", { value: "sggp" }, "S\u00E0i G\u00F2n Gi\u1EA3i Ph\u00F3ng"))),
-            React.createElement("button", { onClick: handleCrawl, disabled: loading, className: "w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300" }, loading ? "⏳ Đang crawl..." : "🚀 Crawl Dữ Liệu"),
-            message && React.createElement("p", { className: "text-green-500 text-center mt-2" }, message),
-            React.createElement("div", __assign({}, getRootProps(), { className: "mt-6 p-4 border-2 border-dashed border-gray-400 text-gray-600 bg-gray-50 text-center rounded-lg cursor-pointer hover:bg-gray-100 transition" }),
-                React.createElement("input", __assign({}, getInputProps())),
-                React.createElement("p", null, "\uD83D\uDCC2 K\u00E9o & th\u1EA3 file v\u00E0o \u0111\u00E2y ho\u1EB7c b\u1EA5m \u0111\u1EC3 ch\u1ECDn file")),
-            React.createElement("button", { onClick: handleUpload, className: "w-full px-4 py-2 mt-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300" }, "\uD83D\uDCE4 T\u1EA3i l\u00EAn file"))));
+            React.createElement("h1", { className: "text-3xl font-bold text-center text-blue-600 mb-6" }, "\uD83D\uDCCA H\u1EC7 Th\u1ED1ng X\u1EED L\u00FD V\u0103n B\u1EA3n"),
+            React.createElement("div", { className: "mb-6 flex justify-center gap-4" },
+                React.createElement("button", { onClick: function () {
+                        setMode(1);
+                        setMessage("");
+                        setFiles([]);
+                    }, className: "px-4 py-2 rounded-lg font-semibold border " + (mode === 1 ? "bg-blue-500 text-white" : "bg-white text-blue-500 border-blue-500") }, "\uD83D\uDE80 Crawl b\u00E1o"),
+                React.createElement("button", { onClick: function () {
+                        setMode(2);
+                        setMessage("");
+                        setFiles([]);
+                    }, className: "px-4 py-2 rounded-lg font-semibold border " + (mode === 2 ? "bg-green-500 text-white" : "bg-white text-green-500 border-green-500") }, "\uD83D\uDCE4 Upload & Extract"),
+                React.createElement("button", { onClick: function () {
+                        setMode(3);
+                        setMessage("");
+                        setFiles([]);
+                    }, className: "px-4 py-2 rounded-lg font-semibold border " + (mode === 3 ? "bg-purple-500 text-white" : "bg-white text-purple-500 border-purple-500") }, "\uD83D\uDD0D Upload & So S\u00E1nh")),
+            mode === 1 && (React.createElement(React.Fragment, null,
+                React.createElement("div", { className: "mb-4" },
+                    React.createElement("label", { className: "block text-lg font-medium text-gray-700" }, "\uD83D\uDCC4 S\u1ED1 l\u01B0\u1EE3ng b\u00E0i vi\u1EBFt:"),
+                    React.createElement("input", { type: "number", value: numArticles, onChange: function (e) { return setNumArticles(Number(e.target.value)); }, className: "w-full p-2 border border-gray-300 rounded mt-1 focus:ring-blue-500 focus:border-blue-500" })),
+                React.createElement("div", { className: "mb-4" },
+                    React.createElement("label", { className: "block text-lg font-medium text-gray-700" }, "\uD83D\uDCF0 Ch\u1ECDn chuy\u00EAn m\u1EE5c:"),
+                    React.createElement("select", { value: category, onChange: function (e) { return setCategory(e.target.value); }, className: "w-full p-2 border border-gray-300 rounded mt-1 focus:ring-blue-500 focus:border-blue-500" },
+                        React.createElement("option", { value: "tuoitre" }, "Tu\u1ED5i Tr\u1EBB"),
+                        React.createElement("option", { value: "thanhnien" }, "Thanh Ni\u00EAn"),
+                        React.createElement("option", { value: "nld" }, "Ng\u01B0\u1EDDi Lao \u0110\u1ED9ng"),
+                        React.createElement("option", { value: "sggp" }, "S\u00E0i G\u00F2n Gi\u1EA3i Ph\u00F3ng"))),
+                React.createElement("button", { onClick: handleCrawl, disabled: loading, className: "w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300" }, loading ? "⏳ Đang crawl..." : "🚀 Crawl Dữ Liệu"))),
+            (mode === 2 || mode === 3) && (React.createElement(React.Fragment, null,
+                React.createElement("div", __assign({}, getRootProps(), { className: "mt-4 p-4 border-2 border-dashed border-gray-400 text-gray-600 bg-gray-50 text-center rounded-lg cursor-pointer hover:bg-gray-100 transition" }),
+                    React.createElement("input", __assign({}, getInputProps())),
+                    React.createElement("p", null, "\uD83D\uDCC2 K\u00E9o & th\u1EA3 file v\u00E0o \u0111\u00E2y ho\u1EB7c b\u1EA5m \u0111\u1EC3 ch\u1ECDn file")),
+                files.length > 0 && (React.createElement("div", { className: "mt-4 flex items-center justify-between bg-gray-100 p-3 rounded shadow" },
+                    React.createElement("span", { className: "text-sm text-gray-700" },
+                        "\uD83D\uDCC4 \u0110\u00E3 ch\u1ECDn: ",
+                        React.createElement("strong", null, files[0].name)),
+                    React.createElement("button", { onClick: function () { return setFiles([]); }, className: "ml-4 px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600" }, "\u274C G\u1EE1 file"))),
+                React.createElement("button", { onClick: function () { return handleUpload(mode === 3); }, className: "w-full px-4 py-2 mt-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300" }, mode === 3 ? "🔍 So Sánh File" : "📤 Tải lên & Extract"))),
+            message && React.createElement("p", { className: "text-green-600 text-center mt-4 font-medium" },
+                "\u2705 ",
+                message))));
 }
 exports["default"] = Home;

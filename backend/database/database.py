@@ -6,7 +6,7 @@ def get_connection():
     return psycopg2.connect(
         dbname="text_similarity",
         user="postgres",
-        password="alvinyeupaoi1711",  # Thay bằng mật khẩu thực tế
+        password="alvinyeupaoi1711", 
         host="localhost",
         port="5432"
     )
@@ -53,16 +53,12 @@ def save_articles_to_postgres(articles, table_name, category):
         conn.close()
 
 # 🟢 Mới: Hàm lưu tài liệu PDF, Word, Excel vào PostgreSQL
-def save_documents_to_postgres(documents):
-    if not documents:
-        print(f"⚠ Không có tài liệu nào để lưu vào PostgreSQL.")
-        return
-
+def save_business_document(doc):
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS documents (
+    CREATE TABLE IF NOT EXISTS business_data (
         id SERIAL PRIMARY KEY,
-        file_name VARCHAR(255),
-        file_type VARCHAR(50),
+        file_name VARCHAR(255) UNIQUE,
+        file_type TEXT,
         content TEXT,
         extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         source VARCHAR(255)
@@ -70,7 +66,7 @@ def save_documents_to_postgres(documents):
     """
 
     insert_query = """
-    INSERT INTO documents (file_name, file_type, content, source)
+    INSERT INTO business_data (file_name, file_type, content, source)
     VALUES %s
     ON CONFLICT (file_name) DO NOTHING;
     """
@@ -78,14 +74,16 @@ def save_documents_to_postgres(documents):
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
         cursor.execute(create_table_query)
         conn.commit()
 
-        values = [(doc["file_name"], doc["file_type"], doc["content"], doc["source"]) for doc in documents]
+        values = [(doc["file_name"], doc["file_type"], doc["content"], doc["source"])]
         execute_values(cursor, insert_query, values)
         conn.commit()
 
-        print(f"✅ Đã lưu {len(documents)} tài liệu vào PostgreSQL!")
+        print(f"✅ Đã lưu tài liệu {doc['file_name']} vào PostgreSQL!")
+
     except Exception as e:
         print(f"❌ Lỗi khi lưu tài liệu vào PostgreSQL: {e}")
     finally:

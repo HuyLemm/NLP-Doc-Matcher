@@ -141,6 +141,8 @@ def get_article_content(url, expected_category):
 
 
 def crawl_thanhnien(n):
+    all_articles =[]
+
     for category, url in CATEGORY_URLS.items():
         print(f"\nĐang crawl {n} bài từ chuyên mục {category}...")
 
@@ -179,6 +181,9 @@ def crawl_thanhnien(n):
         if full_articles:
             print(f"Lưu {len(full_articles)} bài vào bảng thanhnien_articles (category: {category})")
             save_articles_to_postgres(full_articles, "thanhnien_articles", category)
+            all_articles.extend(full_articles)
         else:
             print(f"Không có bài hợp lệ nào để lưu cho chuyên mục {category}.")
+
+    return all_articles 
 

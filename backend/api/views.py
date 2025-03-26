@@ -1,11 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from crawl.crawl_manager import start_crawling
-from extract.extract_text import extract_text_from_file
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
+from extract.extract_text import extract_text_from_fileobj
+from database.database import save_business_document
 import threading
-import json
 
 @api_view(["GET"])
 def crawl_articles(request, category):
@@ -13,15 +11,22 @@ def crawl_articles(request, category):
     result = start_crawling([category], num_articles)
     return Response({"message": f"Đã crawl xong {len(result)} bài từ {category}!"})
 
+
 @api_view(["POST"])
 def upload_file(request):
     file = request.FILES["file"]
-    file_name = default_storage.save(file.name, ContentFile(file.read()))
-    file_path = default_storage.path(file_name)
+    extracted_text = extract_text_from_fileobj(file)
 
-    extracted_text = extract_text_from_file(file_path)
+    doc_info = {
+        "file_name": file.name,
+        "file_type": file.content_type,
+        "content": extracted_text,
+        "source": "user_upload"
+    }
 
-    return Response({"message": "Tải lên thành công!", "content": extracted_text})
+    save_business_document(doc_info)
+
+    return Response({"message": f"Tải lên và lưu '{file.name}' thành công!"})
 
 
 @api_view(["POST"])
