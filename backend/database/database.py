@@ -1,15 +1,10 @@
 import psycopg2
 from psycopg2.extras import execute_values
+from utils.config import DB_CONFIG
 
 # Hàm kết nối PostgreSQL
 def get_connection():
-    return psycopg2.connect(
-        dbname="text_similarity",
-        user="postgres",
-        password="alvinyeupaoi1711", 
-        host="localhost",
-        port="5432"
-    )
+    return psycopg2.connect(**DB_CONFIG)
 
 # Hàm lưu bài viết vào PostgreSQL (đã có)
 def save_articles_to_postgres(articles, table_name, category):
